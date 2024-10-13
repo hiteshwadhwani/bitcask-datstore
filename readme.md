@@ -2,8 +2,10 @@
 ## Introduction
 
 This repository contains a Go implementation of the Bitcask key-value store as described in the Riak Bitcask paper. Bitcask is a high-performance, persistent key-value storage system optimized for fast reads and writes. It is designed to handle large datasets with low-latency access, making it suitable for applications that require efficient data storage and retrieval.
-## Features
 
+ref - https://riak.com/assets/bitcask-intro.pdf
+
+## Features
 
 - **High Performance:** Optimized for fast read and write operations.
 - **Persistence:** Ensures data durability by storing data on disk.
