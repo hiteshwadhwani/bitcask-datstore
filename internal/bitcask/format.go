@@ -1,11 +1,13 @@
 package bitcask
 
-import "encoding/binary"
+import (
+	"encoding/binary"
+)
 
 // headerSize is the size of the header in the data file
 const headerSize = 12
 
-func encodeHeader(keySize, valueSize, timeStamp uint32) []byte {
+func encodeHeader(timeStamp, keySize, valueSize uint32) []byte {
 	header := make([]byte, headerSize)
 
 	binary.LittleEndian.PutUint32(header[0:4], timeStamp)

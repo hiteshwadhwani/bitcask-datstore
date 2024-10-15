@@ -7,6 +7,11 @@ import (
 	"io"
 	"os"
 	"sync"
+	"time"
+)
+
+const (
+	defaultWhence = io.SeekStart
 )
 
 type keyDirEntry struct {
@@ -27,9 +32,9 @@ type DiskStore struct {
 	// It will be used to get the position of the key-value pair in the file
 	keyDir map[string]keyDirEntry
 
-	// current position of cursor in the file
+	// position of cursor in the file
 	// will be use to write new key-value pair in the file
-	currentPosition uint32
+	writePosition int
 }
 
 func checkIfFileExists(filePath string) (bool, error) {
@@ -43,7 +48,12 @@ func checkIfFileExists(filePath string) (bool, error) {
 	return true, nil
 }
 
-func (d *DiskStore) NewDiskStore(filePath string) (*DiskStore, error) {
+func NewDiskStore(filePath string) (*DiskStore, error) {
+	d := &DiskStore{
+		my:            &sync.Mutex{},
+		keyDir:        make(map[string]keyDirEntry),
+		writePosition: 0,
+	}
 	exists, err := checkIfFileExists(filePath)
 	if err != nil {
 		return nil, fmt.Errorf("error checking if file exists: %v", err)
@@ -60,12 +70,9 @@ func (d *DiskStore) NewDiskStore(filePath string) (*DiskStore, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error opening data file: %v", err)
 	}
+	d.file = file
 
-	return &DiskStore{
-		file:   file,
-		my:     &sync.Mutex{},
-		keyDir: make(map[string]keyDirEntry),
-	}, nil
+	return d, nil
 }
 
 // It will be called at startup to initialize the keyDir
@@ -112,7 +119,7 @@ func (d *DiskStore) initKeyDir(filePath string) error {
 
 		d.keyDir[string(key)] = keyDirEntry{
 			timestamp: timestamp,
-			position:  d.currentPosition + totalSize,
+			position:  uint32(d.writePosition) + totalSize,
 			size:      totalSize,
 		}
 	}
@@ -121,11 +128,57 @@ func (d *DiskStore) initKeyDir(filePath string) error {
 
 }
 
-func (d *DiskStore) Close() error {
-	err := d.file.Close()
-	if err != nil {
-		return fmt.Errorf("error closing data file: %v", err)
+func (d *DiskStore) Get(key string) (string, error) {
+	entry, ok := d.keyDir[key]
+
+	if !ok {
+		return "", fmt.Errorf("key not found")
 	}
 
+	entryBuffer := make([]byte, entry.size)
+
+	_, err := d.file.Seek(int64(entry.position), defaultWhence)
+	if err != nil {
+		return "", fmt.Errorf("error seeking to position: %v", err)
+	}
+
+	_, err = io.ReadFull(d.file, entryBuffer)
+	if err == io.EOF {
+		return "", fmt.Errorf("error reading value: %v", err)
+	}
+
+	_, value := decodeKeyValue(entryBuffer)
+
+	return value, nil
+}
+
+func (d *DiskStore) Put(key string, value string) error {
+	timestamp := uint32(time.Now().Unix())
+
+	totalSize, kv := encodeKeyValue(timestamp, key, value)
+
+	_, err := d.file.Seek(int64(d.writePosition), defaultWhence)
+	if err != nil {
+		return fmt.Errorf("error seeking to position: %v", err)
+	}
+
+	_, err = d.file.Write(kv)
+
+	if err != nil {
+		return fmt.Errorf("error writing key-value pair: %v", err)
+	}
+
+	d.keyDir[key] = keyDirEntry{
+		timestamp: timestamp,
+		position:  uint32(d.writePosition),
+		size:      uint32(totalSize),
+	}
+
+	d.writePosition += totalSize
+
 	return nil
+}
+
+func (d *DiskStore) Close() {
+	d.file.Close()
 }
