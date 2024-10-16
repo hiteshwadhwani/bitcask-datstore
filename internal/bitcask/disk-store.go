@@ -35,6 +35,8 @@ type DiskStore struct {
 	// position of cursor in the file
 	// will be use to write new key-value pair in the file
 	writePosition int
+
+	keyLocks KeyLock
 }
 
 func checkIfFileExists(filePath string) (bool, error) {
@@ -53,6 +55,7 @@ func NewDiskStore(filePath string) (*DiskStore, error) {
 		my:            &sync.Mutex{},
 		keyDir:        make(map[string]keyDirEntry),
 		writePosition: 0,
+		keyLocks:      NewKeyLock(),
 	}
 	exists, err := checkIfFileExists(filePath)
 	if err != nil {
@@ -129,6 +132,11 @@ func (d *DiskStore) initKeyDir(filePath string) error {
 }
 
 func (d *DiskStore) Get(key string) (string, error) {
+	// get the shared lock for the key
+	lock := d.keyLocks.GetLock(key)
+	lock.RLock()
+	defer lock.RUnlock()
+
 	entry, ok := d.keyDir[key]
 
 	if !ok {
@@ -152,7 +160,12 @@ func (d *DiskStore) Get(key string) (string, error) {
 	return value, nil
 }
 
-func (d *DiskStore) Put(key string, value string) error {
+func (d *DiskStore) Set(key string, value string) error {
+	// get the exclusive lock for the key
+	lock := d.keyLocks.GetLock(key)
+	lock.Lock()
+	defer lock.Unlock()
+
 	timestamp := uint32(time.Now().Unix())
 
 	totalSize, kv := encodeKeyValue(timestamp, key, value)
@@ -162,7 +175,7 @@ func (d *DiskStore) Put(key string, value string) error {
 		return fmt.Errorf("error seeking to position: %v", err)
 	}
 
-	_, err = d.file.Write(kv)
+	err = d.Write(kv)
 
 	if err != nil {
 		return fmt.Errorf("error writing key-value pair: %v", err)
@@ -175,6 +188,21 @@ func (d *DiskStore) Put(key string, value string) error {
 	}
 
 	d.writePosition += totalSize
+
+	return nil
+}
+
+func (d *DiskStore) Write(data []byte) error {
+	_, err := d.file.Write(data)
+	if err != nil {
+		return fmt.Errorf("error writing data: %v", err)
+	}
+
+	// sync ensures that the data is written to the disk
+	err = d.file.Sync()
+	if err != nil {
+		return fmt.Errorf("error syncing data: %v", err)
+	}
 
 	return nil
 }

@@ -50,6 +50,10 @@ import (
 func main() {
 	db, err := bitcask.NewDiskStore("bitcask.db")
 
+	if err != nil {
+		fmt.Printf("something went wrong: %v", err)
+	}
+
 	defer db.Close()
 	defer os.Remove("bitcask.db")
 
@@ -57,7 +61,7 @@ func main() {
 		fmt.Printf("error creating disk store: %v", err)
 	}
 
-	err = db.Put("name", "hitesh")
+	err = db.Set("name", "hitesh")
 
 	if err != nil {
 		fmt.Printf("error putting value: %v", err)
