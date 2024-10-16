@@ -9,44 +9,6 @@ import (
 	"os"
 )
 
-// type BitcaskOptions struct{
-// 	// Max number of data files to keep in the datastore
-// 	maxDataFiles int
-
-// 	// Max size of a data file
-// 	maxDataFileSize int
-
-// 	// Max size of a hint file
-// 	maxHintFileSize int
-
-// 	// Merge percentage
-// 	mergePercentage int
-
-// 	// Compression algorithm to use for the data file
-// 	compressionAlgo string
-
-// 	// Compression level to use for the data file
-// 	compressionLevel int
-
-// 	// Whether to use a bloom filter for the data file
-// 	useBloomFilter bool
-
-// 	// Bloom filter false positive rate
-// 	bloomFilterFP float64
-
-// 	// Whether to use a hint file for faster startup
-// 	useHintFile bool
-
-// 	// Whether to sync data to disk after each write
-// 	syncWrites bool
-
-// 	// Whether to use a merge worker to merge data files periodically
-// 	useMergeWorker bool
-
-// 	// Merge worker interval
-// 	mergeWorkerInterval time.Duration
-// }
-
 func main() {
 	db, err := bitcask.NewDiskStore("bitcask.db")
 
