@@ -19,6 +19,5 @@ ref - https://riak.com/assets/bitcask-intro.pdf
 The Bitcask implementation follows the architecture outlined in the Bitcask paper, focusing on simplicity and performance. Key components include:
 
 - **Data Files:** Stores key-value pairs on disk.
-- **Memtable:** Caches recent writes in memory for quick access.
 - **Indexing Mechanism:** Maintains an in-memory index to map keys to their locations in data files.
 - **Concurrency Management:** Uses synchronization primitives to handle concurrent operations safely.
