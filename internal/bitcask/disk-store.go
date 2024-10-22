@@ -157,6 +157,11 @@ func (d *DiskStore) Get(key string) (string, error) {
 
 	_, value := decodeKeyValue(entryBuffer)
 
+	// check if it is a tombstone
+	if value == "" {
+		return "", fmt.Errorf("key deleted")
+	}
+
 	return value, nil
 }
 
@@ -203,6 +208,39 @@ func (d *DiskStore) Write(data []byte) error {
 	if err != nil {
 		return fmt.Errorf("error syncing data: %v", err)
 	}
+
+	return nil
+}
+
+// Delete will delete the key-value pair from db
+// It will append a tombstone to the file which will indicate that key is deleted
+// tombstone will look like key with no value
+// no value means the size of the value will be 0
+// if the size of the value is 0, then it's easy to identify that the key is deleted
+// and we don't need to read the value to identify that the key is deleted
+func (d *DiskStore) Delete(key string) error {
+	timestamp := uint32(time.Now().Unix())
+
+	totalSize, kv := encodeKeyValue(timestamp, key, "")
+
+	_, err := d.file.Seek(int64(d.writePosition), defaultWhence)
+	if err != nil {
+		return fmt.Errorf("error seeking to position: %v", err)
+	}
+
+	_, err = d.file.Write(kv)
+
+	if err != nil {
+		return fmt.Errorf("error writing tombstone: %v", err)
+	}
+
+	d.keyDir[key] = keyDirEntry{
+		timestamp: timestamp,
+		position:  uint32(d.writePosition),
+		size:      uint32(totalSize),
+	}
+
+	d.writePosition += totalSize
 
 	return nil
 }

@@ -26,6 +26,7 @@ func decodeHeader(header []byte) (uint32, uint32, uint32) {
 }
 
 func encodeKeyValue(timestamp uint32, key string, value string) (int, []byte) {
+	// len(key) not returns the len of string but it returns the len of bytes in go
 	header := encodeHeader(timestamp, uint32(len(key)), uint32(len(value)))
 
 	kv := make([]byte, 0, headerSize+len([]byte(key))+len([]byte(value)))

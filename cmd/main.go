@@ -35,4 +35,17 @@ func main() {
 	}
 
 	fmt.Println(value)
+
+	err = db.Delete("name")
+	if err != nil {
+		fmt.Printf("error deleting value: %v", err)
+	}
+
+	value, err = db.Get("name")
+	if err != nil {
+		fmt.Printf("error getting value: %v", err)
+	}
+
+	fmt.Println(value)
+
 }
