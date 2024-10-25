@@ -3,49 +3,46 @@
 
 package main
 
-import (
-	"fmt"
-	"hiteshwadhwani/bitcask-datstore.git/internal/bitcask"
-	"os"
-)
+import "hiteshwadhwani/bitcask-datstore.git/internal/bitcask"
 
 func main() {
-	db, err := bitcask.NewDiskStore("bitcask.db")
+	// db, err := bitcask.NewDiskStore("bitcask.db")
 
-	if err != nil {
-		fmt.Printf("something went wrong: %v", err)
-	}
+	// if err != nil {
+	// 	fmt.Printf("something went wrong: %v", err)
+	// }
 
-	defer db.Close()
-	defer os.Remove("bitcask.db")
+	// defer db.Close()
+	// defer os.Remove("bitcask.db")
 
-	if err != nil {
-		fmt.Printf("error creating disk store: %v", err)
-	}
+	// if err != nil {
+	// 	fmt.Printf("error creating disk store: %v", err)
+	// }
 
-	err = db.Set("name", "hitesh")
+	// err = db.Set("name", "hitesh")
 
-	if err != nil {
-		fmt.Printf("error putting value: %v", err)
-	}
+	// if err != nil {
+	// 	fmt.Printf("error putting value: %v", err)
+	// }
 
-	value, err := db.Get("name")
-	if err != nil {
-		fmt.Printf("error getting value: %v", err)
-	}
+	// value, err := db.Get("name")
+	// if err != nil {
+	// 	fmt.Printf("error getting value: %v", err)
+	// }
 
-	fmt.Println(value)
+	// fmt.Println(value)
 
-	err = db.Delete("name")
-	if err != nil {
-		fmt.Printf("error deleting value: %v", err)
-	}
+	// err = db.Delete("name")
+	// if err != nil {
+	// 	fmt.Printf("error deleting value: %v", err)
+	// }
 
-	value, err = db.Get("name")
-	if err != nil {
-		fmt.Printf("error getting value: %v", err)
-	}
+	// value, err = db.Get("name")
+	// if err != nil {
+	// 	fmt.Printf("error getting value: %v", err)
+	// }
 
-	fmt.Println(value)
+	// fmt.Println(value)
 
+	bitcask.Execute()
 }
