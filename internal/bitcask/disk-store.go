@@ -166,6 +166,12 @@ func (d *DiskStore) Get(key string) (string, error) {
 }
 
 func (d *DiskStore) Set(key string, value string) error {
+	// check if the key already exists
+	_, err := d.Get(key)
+	if err == nil {
+		return fmt.Errorf("key already exists")
+	}
+
 	// get the exclusive lock for the key
 	lock := d.keyLocks.GetLock(key)
 	lock.Lock()
@@ -175,7 +181,7 @@ func (d *DiskStore) Set(key string, value string) error {
 
 	totalSize, kv := encodeKeyValue(timestamp, key, value)
 
-	_, err := d.file.Seek(int64(d.writePosition), defaultWhence)
+	_, err = d.file.Seek(int64(d.writePosition), defaultWhence)
 	if err != nil {
 		return fmt.Errorf("error seeking to position: %v", err)
 	}

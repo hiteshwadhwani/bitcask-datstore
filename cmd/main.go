@@ -34,6 +34,7 @@ func main() {
 				err := db.Set(key, value)
 				if err != nil {
 					fmt.Printf("error setting value: %v \n", err)
+					return
 				}
 
 				fmt.Printf("value set successfully: %v \n", value)
