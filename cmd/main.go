@@ -85,6 +85,17 @@ func main() {
 				os.Exit(0)
 			},
 		},
+		{
+			Name: "help",
+			Run: func(args []string) {
+				fmt.Println("Usage: bitcask [command] [options]")
+				fmt.Println("Commands:")
+				fmt.Println("set <key> <value> - set the value of a key")
+				fmt.Println("get <key> - get the value of a key")
+				fmt.Println("delete <key> - delete the value of a key")
+				fmt.Println("exit - exit the program")
+			},
+		},
 	}
 
 	cliSession := pkg.NewInteractiveSession()
